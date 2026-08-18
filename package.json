@@ -1,0 +1,9 @@
+{
+  "name": "rest-api-playwright-testing",
+  "version": "1.0.0",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.62.1"
+  },
+  "private": true
+}
