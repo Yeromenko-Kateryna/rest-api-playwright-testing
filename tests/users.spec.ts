@@ -160,3 +160,24 @@ test('API-AUTH-001 - should reject user creation without authentication', async 
   expect(body).toHaveProperty('message');
   expect(body.message).toBe('Authentication failed');
 });
+
+test('API-AUTH-002 - should reject user creation with invalid bearer token', async ({ request }) => {
+  const userData = {
+    name: 'Invalid Token API User',
+    email: `invalid-token-${Date.now()}@example.com`,
+    gender: 'female',
+    status: 'active',
+  };
+
+  const response = await request.post('users', {
+    headers: {
+      Authorization: 'Bearer invalid-token',
+    },
+    data: userData,
+  });
+
+  expect(response.status()).toBe(401);
+
+  const contentType = response.headers()['content-type'];
+  expect(contentType).toContain('application/json');
+});
