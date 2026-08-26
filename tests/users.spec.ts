@@ -375,3 +375,76 @@ test('API-USERS-010 - should partially update authenticated user', async ({ requ
     expect(deleteResponse.status()).toBe(204);
   }
 });
+
+test('API-USERS-011 - should fully update authenticated user with PUT', async ({ request }) => {
+  const token = process.env.GOREST_TOKEN;
+
+  expect(token).toBeTruthy();
+
+  const userData = {
+    name: 'PUT API User',
+    email: `put-${Date.now()}@example.com`,
+    gender: 'female',
+    status: 'active',
+  };
+
+  const createResponse = await request.post('users', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    data: userData,
+  });
+
+  expect(createResponse.status()).toBe(201);
+
+  const createdUser = await createResponse.json();
+  const userId = createdUser.id;
+
+  try {
+    const updatedUserData = {
+      name: 'PUT API User Updated',
+      email: `put-updated-${Date.now()}@example.com`,
+      gender: 'male',
+      status: 'inactive',
+    };
+
+    const putResponse = await request.put(`users/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      data: updatedUserData,
+    });
+
+    expect(putResponse.status()).toBe(200);
+
+    const updatedUser = await putResponse.json();
+
+    expect(updatedUser.name).toBe(updatedUserData.name);
+    expect(updatedUser.email).toBe(updatedUserData.email);
+    expect(updatedUser.gender).toBe(updatedUserData.gender);
+    expect(updatedUser.status).toBe(updatedUserData.status);
+
+    const getResponse = await request.get(`users/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    expect(getResponse.status()).toBe(200);
+
+    const retrievedUser = await getResponse.json();
+
+    expect(retrievedUser.name).toBe(updatedUserData.name);
+    expect(retrievedUser.email).toBe(updatedUserData.email);
+    expect(retrievedUser.gender).toBe(updatedUserData.gender);
+    expect(retrievedUser.status).toBe(updatedUserData.status);
+  } finally {
+    const deleteResponse = await request.delete(`users/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    expect(deleteResponse.status()).toBe(204);
+  }
+});
