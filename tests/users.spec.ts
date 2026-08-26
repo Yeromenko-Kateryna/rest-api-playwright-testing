@@ -213,3 +213,36 @@ test('API-USERS-007 - should reject user creation without required email', async
     message: "can't be blank",
   });
 });
+
+test('API-USERS-008 - should reject user creation with invalid gender value', async ({ request }) => {
+  const token = process.env.GOREST_TOKEN;
+
+  expect(token).toBeTruthy();
+
+  const userData = {
+    name: 'Invalid Gender API User',
+    email: `invalid-gender-${Date.now()}@example.com`,
+    gender: 'invalid-value',
+    status: 'active',
+  };
+
+  const response = await request.post('users', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    data: userData,
+  });
+
+  expect(response.status()).toBe(422);
+
+  const contentType = response.headers()['content-type'];
+  expect(contentType).toContain('application/json');
+
+  const body = await response.json();
+
+  expect(Array.isArray(body)).toBe(true);
+  expect(body).toContainEqual({
+    field: 'gender',
+    message: "can't be blank, can be male of female",
+  });
+});
