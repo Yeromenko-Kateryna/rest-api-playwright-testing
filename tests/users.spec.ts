@@ -58,3 +58,19 @@ test('API-USERS-002 - should retrieve existing user by ID', async ({ request }) 
 
   expect(user.id).toBe(existingUserId);
 });
+
+test('API-USERS-003 - should return 404 for nonexistent user', async ({ request }) => {
+  const nonexistentUserId = 999999999;
+
+  const response = await request.get(`users/${nonexistentUserId}`);
+
+  expect(response.status()).toBe(404);
+
+  const contentType = response.headers()['content-type'];
+  expect(contentType).toContain('application/json');
+
+  const body = await response.json();
+
+  expect(body).toHaveProperty('message');
+  expect(body.message).toBe('Resource not found');
+});
