@@ -74,3 +74,24 @@ test('API-USERS-003 - should return 404 for nonexistent user', async ({ request 
   expect(body).toHaveProperty('message');
   expect(body.message).toBe('Resource not found');
 });
+
+test('API-USERS-004 - should retrieve users with pagination parameters', async ({ request }) => {
+  const response = await request.get('users?page=2&per_page=3');
+
+  expect(response.status()).toBe(200);
+
+  const contentType = response.headers()['content-type'];
+  expect(contentType).toContain('application/json');
+
+  const body = await response.json();
+
+  expect(Array.isArray(body)).toBe(true);
+  expect(body.length).toBe(3);
+
+  const headers = response.headers();
+
+  expect(headers['x-pagination-page']).toBe('2');
+  expect(headers['x-pagination-limit']).toBe('3');
+  expect(headers).toHaveProperty('x-pagination-total');
+  expect(headers).toHaveProperty('x-pagination-pages');
+});
