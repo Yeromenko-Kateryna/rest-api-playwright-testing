@@ -95,3 +95,24 @@ test('API-USERS-004 - should retrieve users with pagination parameters', async (
   expect(headers).toHaveProperty('x-pagination-total');
   expect(headers).toHaveProperty('x-pagination-pages');
 });
+
+test('API-USERS-005 - should filter users by active status', async ({ request }) => {
+  const response = await request.get('users?status=active&per_page=5');
+
+  expect(response.status()).toBe(200);
+
+  const contentType = response.headers()['content-type'];
+  expect(contentType).toContain('application/json');
+
+  const body = await response.json();
+
+  expect(Array.isArray(body)).toBe(true);
+  expect(body.length).toBeGreaterThan(0);
+
+  for (const user of body) {
+    expect(user.status).toBe('active');
+  }
+
+  const headers = response.headers();
+  expect(headers['x-pagination-limit']).toBe('5');
+});
