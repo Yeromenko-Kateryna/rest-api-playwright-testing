@@ -304,3 +304,74 @@ test('API-USERS-009 - should create authenticated user', async ({ request }) => 
   expect(deleteResponse.status()).toBe(204);
 }
 });
+
+test('API-USERS-010 - should partially update authenticated user', async ({ request }) => {
+  const token = process.env.GOREST_TOKEN;
+
+  expect(token).toBeTruthy();
+
+  const userData = {
+    name: 'PATCH API User',
+    email: `patch-${Date.now()}@example.com`,
+    gender: 'female',
+    status: 'active',
+  };
+
+  const createResponse = await request.post('users', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    data: userData,
+  });
+
+  expect(createResponse.status()).toBe(201);
+
+  const createdUser = await createResponse.json();
+  const userId = createdUser.id;
+
+  try {
+    const updateData = {
+      name: 'PATCH API User Updated',
+      status: 'inactive',
+    };
+
+    const patchResponse = await request.patch(`users/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      data: updateData,
+    });
+
+    expect(patchResponse.status()).toBe(200);
+
+    const updatedUser = await patchResponse.json();
+
+    expect(updatedUser.name).toBe(updateData.name);
+    expect(updatedUser.status).toBe(updateData.status);
+    expect(updatedUser.email).toBe(userData.email);
+    expect(updatedUser.gender).toBe(userData.gender);
+
+    const getResponse = await request.get(`users/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    expect(getResponse.status()).toBe(200);
+
+    const retrievedUser = await getResponse.json();
+
+    expect(retrievedUser.name).toBe(updateData.name);
+    expect(retrievedUser.status).toBe(updateData.status);
+    expect(retrievedUser.email).toBe(userData.email);
+    expect(retrievedUser.gender).toBe(userData.gender);
+  } finally {
+    const deleteResponse = await request.delete(`users/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    expect(deleteResponse.status()).toBe(204);
+  }
+});
