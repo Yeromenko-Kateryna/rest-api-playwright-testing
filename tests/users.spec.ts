@@ -137,3 +137,26 @@ test('API-USERS-006 - should filter users by female gender', async ({ request })
   const headers = response.headers();
   expect(headers['x-pagination-limit']).toBe('5');
 });
+
+test('API-AUTH-001 - should reject user creation without authentication', async ({ request }) => {
+  const userData = {
+    name: 'Unauthenticated API User',
+    email: `unauth-${Date.now()}@example.com`,
+    gender: 'female',
+    status: 'active',
+  };
+
+  const response = await request.post('users', {
+    data: userData,
+  });
+
+  expect(response.status()).toBe(401);
+
+  const contentType = response.headers()['content-type'];
+  expect(contentType).toContain('application/json');
+
+  const body = await response.json();
+
+  expect(body).toHaveProperty('message');
+  expect(body.message).toBe('Authentication failed');
+});
