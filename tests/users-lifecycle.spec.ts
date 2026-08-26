@@ -1,0 +1,112 @@
+import { test, expect } from '@playwright/test';
+
+test('API-CRUD-001 - should complete authenticated user lifecycle', async ({ request }) => {
+  const token = process.env.GOREST_TOKEN;
+
+  expect(token).toBeTruthy();
+
+  const userData = {
+    name: 'CRUD Lifecycle User',
+    email: `crud-${Date.now()}@example.com`,
+    gender: 'female',
+    status: 'active',
+  };
+
+  const createResponse = await request.post('users', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    data: userData,
+  });
+
+  expect(createResponse.status()).toBe(201);
+
+  const createdUser = await createResponse.json();
+  const userId = createdUser.id;
+
+  let deleted = false;
+
+  try {
+    const getCreatedResponse = await request.get(`users/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    expect(getCreatedResponse.status()).toBe(200);
+
+    const retrievedCreatedUser = await getCreatedResponse.json();
+
+    expect(retrievedCreatedUser.id).toBe(userId);
+    expect(retrievedCreatedUser.name).toBe(userData.name);
+    expect(retrievedCreatedUser.email).toBe(userData.email);
+    expect(retrievedCreatedUser.gender).toBe(userData.gender);
+    expect(retrievedCreatedUser.status).toBe(userData.status);
+
+    const updateData = {
+      name: 'CRUD Lifecycle User Updated',
+      status: 'inactive',
+    };
+
+    const patchResponse = await request.patch(`users/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      data: updateData,
+    });
+
+    expect(patchResponse.status()).toBe(200);
+
+    const updatedUser = await patchResponse.json();
+
+    expect(updatedUser.name).toBe(updateData.name);
+    expect(updatedUser.status).toBe(updateData.status);
+    expect(updatedUser.email).toBe(userData.email);
+    expect(updatedUser.gender).toBe(userData.gender);
+
+    const getUpdatedResponse = await request.get(`users/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    expect(getUpdatedResponse.status()).toBe(200);
+
+    const retrievedUpdatedUser = await getUpdatedResponse.json();
+
+    expect(retrievedUpdatedUser.name).toBe(updateData.name);
+    expect(retrievedUpdatedUser.status).toBe(updateData.status);
+    expect(retrievedUpdatedUser.email).toBe(userData.email);
+    expect(retrievedUpdatedUser.gender).toBe(userData.gender);
+
+    const deleteResponse = await request.delete(`users/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    expect(deleteResponse.status()).toBe(204);
+    deleted = true;
+
+    const getDeletedResponse = await request.get(`users/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    expect(getDeletedResponse.status()).toBe(404);
+
+    const deletedBody = await getDeletedResponse.json();
+
+    expect(deletedBody).toHaveProperty('message');
+    expect(deletedBody.message).toBe('Resource not found');
+  } finally {
+    if (!deleted) {
+      await request.delete(`users/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    }
+  }
+});
