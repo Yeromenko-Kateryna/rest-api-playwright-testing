@@ -116,3 +116,24 @@ test('API-USERS-005 - should filter users by active status', async ({ request })
   const headers = response.headers();
   expect(headers['x-pagination-limit']).toBe('5');
 });
+
+test('API-USERS-006 - should filter users by female gender', async ({ request }) => {
+  const response = await request.get('users?gender=female&per_page=5');
+
+  expect(response.status()).toBe(200);
+
+  const contentType = response.headers()['content-type'];
+  expect(contentType).toContain('application/json');
+
+  const body = await response.json();
+
+  expect(Array.isArray(body)).toBe(true);
+  expect(body.length).toBeGreaterThan(0);
+
+  for (const user of body) {
+    expect(user.gender).toBe('female');
+  }
+
+  const headers = response.headers();
+  expect(headers['x-pagination-limit']).toBe('5');
+});
