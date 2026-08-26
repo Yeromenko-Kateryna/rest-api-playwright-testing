@@ -60,19 +60,65 @@ test('API-USERS-002 - should retrieve existing user by ID', async ({ request }) 
 });
 
 test('API-USERS-003 - should return 404 for nonexistent user', async ({ request }) => {
-  const nonexistentUserId = 999999999;
+  const token = process.env.GOREST_TOKEN;
 
-  const response = await request.get(`users/${nonexistentUserId}`);
+  expect(token).toBeTruthy();
 
-  expect(response.status()).toBe(404);
+  const userData = {
+    name: 'Nonexistent User Verification',
+    email: `nonexistent-${Date.now()}@example.com`,
+    gender: 'female',
+    status: 'active',
+  };
 
-  const contentType = response.headers()['content-type'];
-  expect(contentType).toContain('application/json');
+  const createResponse = await request.post('users', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    data: userData,
+  });
 
-  const body = await response.json();
+  expect(createResponse.status()).toBe(201);
 
-  expect(body).toHaveProperty('message');
-  expect(body.message).toBe('Resource not found');
+  const createdUser = await createResponse.json();
+  const nonexistentUserId = createdUser.id;
+
+  let deleted = false;
+
+  try {
+    const deleteResponse = await request.delete(`users/${nonexistentUserId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    expect(deleteResponse.status()).toBe(204);
+    deleted = true;
+
+    const response = await request.get(`users/${nonexistentUserId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    expect(response.status()).toBe(404);
+
+    const contentType = response.headers()['content-type'];
+    expect(contentType).toContain('application/json');
+
+    const body = await response.json();
+
+    expect(body).toHaveProperty('message');
+    expect(body.message).toBe('Resource not found');
+  } finally {
+    if (!deleted) {
+      await request.delete(`users/${nonexistentUserId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    }
+  }
 });
 
 test('API-USERS-004 - should retrieve users with pagination parameters', async ({ request }) => {
@@ -279,30 +325,30 @@ test('API-USERS-009 - should create authenticated user', async ({ request }) => 
   const userId = createdUser.id;
 
   try {
-  const getResponse = await request.get(`users/${userId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+    const getResponse = await request.get(`users/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-  expect(getResponse.status()).toBe(200);
+    expect(getResponse.status()).toBe(200);
 
-  const retrievedUser = await getResponse.json();
+    const retrievedUser = await getResponse.json();
 
-  expect(retrievedUser.id).toBe(userId);
-  expect(retrievedUser.name).toBe(userData.name);
-  expect(retrievedUser.email).toBe(userData.email);
-  expect(retrievedUser.gender).toBe(userData.gender);
-  expect(retrievedUser.status).toBe(userData.status);
-} finally {
-  const deleteResponse = await request.delete(`users/${userId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+    expect(retrievedUser.id).toBe(userId);
+    expect(retrievedUser.name).toBe(userData.name);
+    expect(retrievedUser.email).toBe(userData.email);
+    expect(retrievedUser.gender).toBe(userData.gender);
+    expect(retrievedUser.status).toBe(userData.status);
+  } finally {
+    const deleteResponse = await request.delete(`users/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-  expect(deleteResponse.status()).toBe(204);
-}
+    expect(deleteResponse.status()).toBe(204);
+  }
 });
 
 test('API-USERS-010 - should partially update authenticated user', async ({ request }) => {
@@ -473,30 +519,155 @@ test('API-USERS-012 - should delete authenticated user', async ({ request }) => 
   const createdUser = await createResponse.json();
   const userId = createdUser.id;
 
-  const deleteResponse = await request.delete(`users/${userId}`, {
+  let deleted = false;
+
+  try {
+    const deleteResponse = await request.delete(`users/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    expect(deleteResponse.status()).toBe(204);
+
+    const deleteBody = await deleteResponse.body();
+    expect(deleteBody.length).toBe(0);
+
+    deleted = true;
+
+    const getResponse = await request.get(`users/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    expect(getResponse.status()).toBe(404);
+
+    const contentType = getResponse.headers()['content-type'];
+    expect(contentType).toContain('application/json');
+
+    const body = await getResponse.json();
+
+    expect(body).toHaveProperty('message');
+    expect(body.message).toBe('Resource not found');
+  } finally {
+    if (!deleted) {
+      await request.delete(`users/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    }
+  }
+});
+
+test('API-CRUD-001 - should complete authenticated user lifecycle', async ({ request }) => {
+  const token = process.env.GOREST_TOKEN;
+
+  expect(token).toBeTruthy();
+
+  const userData = {
+    name: 'CRUD Lifecycle User',
+    email: `crud-${Date.now()}@example.com`,
+    gender: 'female',
+    status: 'active',
+  };
+
+  const createResponse = await request.post('users', {
     headers: {
       Authorization: `Bearer ${token}`,
     },
+    data: userData,
   });
 
-  expect(deleteResponse.status()).toBe(204);
+  expect(createResponse.status()).toBe(201);
 
-  const deleteBody = await deleteResponse.body();
-  expect(deleteBody.length).toBe(0);
+  const createdUser = await createResponse.json();
+  const userId = createdUser.id;
 
-  const getResponse = await request.get(`users/${userId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  let deleted = false;
 
-  expect(getResponse.status()).toBe(404);
+  try {
+    const getCreatedResponse = await request.get(`users/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-  const contentType = getResponse.headers()['content-type'];
-  expect(contentType).toContain('application/json');
+    expect(getCreatedResponse.status()).toBe(200);
 
-  const body = await getResponse.json();
+    const retrievedCreatedUser = await getCreatedResponse.json();
 
-  expect(body).toHaveProperty('message');
-  expect(body.message).toBe('Resource not found');
+    expect(retrievedCreatedUser.id).toBe(userId);
+    expect(retrievedCreatedUser.name).toBe(userData.name);
+    expect(retrievedCreatedUser.email).toBe(userData.email);
+    expect(retrievedCreatedUser.gender).toBe(userData.gender);
+    expect(retrievedCreatedUser.status).toBe(userData.status);
+
+    const updateData = {
+      name: 'CRUD Lifecycle User Updated',
+      status: 'inactive',
+    };
+
+    const patchResponse = await request.patch(`users/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      data: updateData,
+    });
+
+    expect(patchResponse.status()).toBe(200);
+
+    const updatedUser = await patchResponse.json();
+
+    expect(updatedUser.name).toBe(updateData.name);
+    expect(updatedUser.status).toBe(updateData.status);
+    expect(updatedUser.email).toBe(userData.email);
+    expect(updatedUser.gender).toBe(userData.gender);
+
+    const getUpdatedResponse = await request.get(`users/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    expect(getUpdatedResponse.status()).toBe(200);
+
+    const retrievedUpdatedUser = await getUpdatedResponse.json();
+
+    expect(retrievedUpdatedUser.name).toBe(updateData.name);
+    expect(retrievedUpdatedUser.status).toBe(updateData.status);
+    expect(retrievedUpdatedUser.email).toBe(userData.email);
+    expect(retrievedUpdatedUser.gender).toBe(userData.gender);
+
+    const deleteResponse = await request.delete(`users/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    expect(deleteResponse.status()).toBe(204);
+    deleted = true;
+
+    const getDeletedResponse = await request.get(`users/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    expect(getDeletedResponse.status()).toBe(404);
+
+    const deletedBody = await getDeletedResponse.json();
+
+    expect(deletedBody).toHaveProperty('message');
+    expect(deletedBody.message).toBe('Resource not found');
+  } finally {
+    if (!deleted) {
+      await request.delete(`users/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    }
+  }
 });
