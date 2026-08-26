@@ -246,3 +246,61 @@ test('API-USERS-008 - should reject user creation with invalid gender value', as
     message: "can't be blank, can be male of female",
   });
 });
+
+test('API-USERS-009 - should create authenticated user', async ({ request }) => {
+  const token = process.env.GOREST_TOKEN;
+
+  expect(token).toBeTruthy();
+
+  const userData = {
+    name: 'Authenticated API User',
+    email: `authenticated-${Date.now()}@example.com`,
+    gender: 'female',
+    status: 'active',
+  };
+
+  const createResponse = await request.post('users', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    data: userData,
+  });
+
+  expect(createResponse.status()).toBe(201);
+
+  const createdUser = await createResponse.json();
+
+  expect(createdUser).toHaveProperty('id');
+  expect(createdUser.name).toBe(userData.name);
+  expect(createdUser.email).toBe(userData.email);
+  expect(createdUser.gender).toBe(userData.gender);
+  expect(createdUser.status).toBe(userData.status);
+
+  const userId = createdUser.id;
+
+  try {
+  const getResponse = await request.get(`users/${userId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  expect(getResponse.status()).toBe(200);
+
+  const retrievedUser = await getResponse.json();
+
+  expect(retrievedUser.id).toBe(userId);
+  expect(retrievedUser.name).toBe(userData.name);
+  expect(retrievedUser.email).toBe(userData.email);
+  expect(retrievedUser.gender).toBe(userData.gender);
+  expect(retrievedUser.status).toBe(userData.status);
+} finally {
+  const deleteResponse = await request.delete(`users/${userId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  expect(deleteResponse.status()).toBe(204);
+}
+});
