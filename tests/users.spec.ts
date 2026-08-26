@@ -448,3 +448,55 @@ test('API-USERS-011 - should fully update authenticated user with PUT', async ({
     expect(deleteResponse.status()).toBe(204);
   }
 });
+
+test('API-USERS-012 - should delete authenticated user', async ({ request }) => {
+  const token = process.env.GOREST_TOKEN;
+
+  expect(token).toBeTruthy();
+
+  const userData = {
+    name: 'DELETE API User',
+    email: `delete-${Date.now()}@example.com`,
+    gender: 'female',
+    status: 'active',
+  };
+
+  const createResponse = await request.post('users', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    data: userData,
+  });
+
+  expect(createResponse.status()).toBe(201);
+
+  const createdUser = await createResponse.json();
+  const userId = createdUser.id;
+
+  const deleteResponse = await request.delete(`users/${userId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  expect(deleteResponse.status()).toBe(204);
+
+  const deleteBody = await deleteResponse.body();
+  expect(deleteBody.length).toBe(0);
+
+  const getResponse = await request.get(`users/${userId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  expect(getResponse.status()).toBe(404);
+
+  const contentType = getResponse.headers()['content-type'];
+  expect(contentType).toContain('application/json');
+
+  const body = await getResponse.json();
+
+  expect(body).toHaveProperty('message');
+  expect(body.message).toBe('Resource not found');
+});
