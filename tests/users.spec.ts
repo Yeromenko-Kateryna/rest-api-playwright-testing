@@ -181,3 +181,35 @@ test('API-AUTH-002 - should reject user creation with invalid bearer token', asy
   const contentType = response.headers()['content-type'];
   expect(contentType).toContain('application/json');
 });
+
+test('API-USERS-007 - should reject user creation without required email', async ({ request }) => {
+  const token = process.env.GOREST_TOKEN;
+
+  expect(token).toBeTruthy();
+
+  const userData = {
+    name: 'Missing Email API User',
+    gender: 'female',
+    status: 'active',
+  };
+
+  const response = await request.post('users', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    data: userData,
+  });
+
+  expect(response.status()).toBe(422);
+
+  const contentType = response.headers()['content-type'];
+  expect(contentType).toContain('application/json');
+
+  const body = await response.json();
+
+  expect(Array.isArray(body)).toBe(true);
+  expect(body).toContainEqual({
+    field: 'email',
+    message: "can't be blank",
+  });
+});
