@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { getAuthHeaders } from './helpers/auth';
+import { cleanupUser } from './helpers/cleanup';
 
 test('API-USERS-001 - should retrieve users collection', async ({ request }) => {
   const response = await request.get('users');
@@ -14,13 +15,13 @@ test('API-USERS-001 - should retrieve users collection', async ({ request }) => 
   expect(Array.isArray(body)).toBe(true);
   expect(body.length).toBeGreaterThan(0);
 
-  const user = body[0];
-
-  expect(user).toHaveProperty('id');
-  expect(user).toHaveProperty('name');
-  expect(user).toHaveProperty('email');
-  expect(user).toHaveProperty('gender');
-  expect(user).toHaveProperty('status');
+  for (const user of body) {
+    expect(user).toHaveProperty('id');
+    expect(user).toHaveProperty('name');
+    expect(user).toHaveProperty('email');
+    expect(user).toHaveProperty('gender');
+    expect(user).toHaveProperty('status');
+  }
 
   const headers = response.headers();
 
@@ -60,7 +61,7 @@ test('API-USERS-002 - should retrieve existing user by ID', async ({ request }) 
   expect(user.id).toBe(existingUserId);
 });
 
-test('API-USERS-003 - should return 404 for nonexistent user', async ({ request }) => {
+test('API-USERS-003 - should return 404 for nonexistent user', async ({ request }, testInfo) => {
   
   const userData = {
     name: 'Nonexistent User Verification',
@@ -77,9 +78,13 @@ test('API-USERS-003 - should return 404 for nonexistent user', async ({ request 
   expect(createResponse.status()).toBe(201);
 
   const createdUser = await createResponse.json();
+  expect(createdUser).toHaveProperty('id');
+  expect(typeof createdUser.id).toBe('number');
+
   const nonexistentUserId = createdUser.id;
 
   let deleted = false;
+  let primaryFailure: unknown;
 
   try {
     const deleteResponse = await request.delete(`users/${nonexistentUserId}`, {
@@ -102,11 +107,23 @@ test('API-USERS-003 - should return 404 for nonexistent user', async ({ request 
 
     expect(body).toHaveProperty('message');
     expect(body.message).toBe('Resource not found');
+  } catch (error) {
+    primaryFailure = error;
+    throw error;
   } finally {
     if (!deleted) {
-      await request.delete(`users/${nonexistentUserId}`, {
-        headers: getAuthHeaders(),
-      });
+      const cleanupError = await cleanupUser(request, nonexistentUserId);
+
+      if (cleanupError) {
+        if (primaryFailure) {
+          await testInfo.attach('cleanup-failure', {
+            body: cleanupError.message,
+            contentType: 'text/plain',
+          });
+        } else {
+          throw cleanupError;
+        }
+      }
     }
   }
 });

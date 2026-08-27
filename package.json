@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "license": "ISC",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "test": "playwright test",
     "test:api": "playwright test tests"

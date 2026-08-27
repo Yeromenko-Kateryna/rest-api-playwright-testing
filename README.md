@@ -33,7 +33,9 @@ tests/
 ├── users-write.spec.ts
 ├── users-lifecycle.spec.ts
 └── helpers/
-    └── auth.ts
+    ├── auth.ts
+    ├── cleanup.ts
+    └── redacted-reporter.ts
 ```
 
 Each specification covers one API testing responsibility:
@@ -43,7 +45,7 @@ Each specification covers one API testing responsibility:
 - authenticated write operations;
 - complete CRUD lifecycle.
 
-Repeated authentication logic is kept in a small shared helper.
+Repeated authentication and cleanup logic is kept in small shared helpers. The configured reporter redacts bearer tokens from failed-request output.
 
 This keeps the tests readable and maintainable without introducing unnecessary service layers or framework abstractions for a portfolio-sized API project.
 
@@ -116,8 +118,6 @@ The automated regression suite covers the GoREST `/users` resource.
 ```text
 15 documented manual test cases
 15 automated Playwright scenarios
-15 passed in the final local regression run
-15 passed in GitHub Actions CI
 ```
 
 ---
@@ -179,22 +179,19 @@ Negative authentication tests remain explicit so invalid-token behavior is visib
 
 ---
 
-## Latest Test Run
+## Automated Execution Scope
 
-```text
-15 passed
-0 failed
-```
+The repository contains 15 discoverable Playwright API scenarios. Test results depend on the availability of the public GoREST environment and a configured `GOREST_TOKEN` for authenticated scenarios.
 
-Execution scope:
+The suite covers:
 
 - 15 automated API scenarios
 - GET, POST, PATCH, PUT, and DELETE coverage
 - authentication and validation scenarios
 - pagination and filtering
 - complete authenticated CRUD lifecycle
-- local Playwright execution
-- GitHub Actions CI execution
+- local Playwright execution through `npm test`
+- GitHub Actions execution through the configured workflow
 
 ---
 
@@ -252,7 +249,7 @@ The required repository secret is:
 GOREST_TOKEN
 ```
 
-The current workflow has been successfully verified in GitHub Actions.
+The workflow is configured to run the suite with the `GOREST_TOKEN` repository secret.
 
 ---
 

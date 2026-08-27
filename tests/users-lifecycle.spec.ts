@@ -1,7 +1,8 @@
 import { test, expect } from '@playwright/test';
 import { getAuthHeaders } from './helpers/auth';
+import { cleanupUser } from './helpers/cleanup';
 
-test('API-CRUD-001 - should complete authenticated user lifecycle', async ({ request }) => {
+test('API-CRUD-001 - should complete authenticated user lifecycle', async ({ request }, testInfo) => {
  
   const userData = {
     name: 'CRUD Lifecycle User',
@@ -18,9 +19,13 @@ test('API-CRUD-001 - should complete authenticated user lifecycle', async ({ req
   expect(createResponse.status()).toBe(201);
 
   const createdUser = await createResponse.json();
+  expect(createdUser).toHaveProperty('id');
+  expect(typeof createdUser.id).toBe('number');
+
   const userId = createdUser.id;
 
   let deleted = false;
+  let primaryFailure: unknown;
 
   try {
     const getCreatedResponse = await request.get(`users/${userId}`, {
@@ -86,11 +91,23 @@ test('API-CRUD-001 - should complete authenticated user lifecycle', async ({ req
 
     expect(deletedBody).toHaveProperty('message');
     expect(deletedBody.message).toBe('Resource not found');
+  } catch (error) {
+    primaryFailure = error;
+    throw error;
   } finally {
     if (!deleted) {
-      await request.delete(`users/${userId}`, {
-        headers: getAuthHeaders(),
-      });
+      const cleanupError = await cleanupUser(request, userId);
+
+      if (cleanupError) {
+        if (primaryFailure) {
+          await testInfo.attach('cleanup-failure', {
+            body: cleanupError.message,
+            contentType: 'text/plain',
+          });
+        } else {
+          throw cleanupError;
+        }
+      }
     }
   }
 });

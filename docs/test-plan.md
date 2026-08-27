@@ -8,7 +8,7 @@ The project also demonstrates practical QA skills in REST API analysis, validati
 
 ## 2. Scope
 
-The project focuses primarily on the GoREST v2 Users resource, with selected coverage of related resources to demonstrate REST API relationships and nested endpoints.
+The project focuses on the GoREST v2 Users resource.
 
 The scope includes:
 
@@ -20,8 +20,7 @@ The scope includes:
 - positive and negative scenarios;
 - input validation;
 - bearer-token authentication for applicable write operations;
-- an end-to-end CRUD lifecycle for a created resource;
-- selected coverage of Posts, Comments, and/or Todos where it provides additional value beyond repeating the same CRUD patterns.
+- an end-to-end CRUD lifecycle for a created resource.
 
 ## 3. Out of Scope
 
@@ -63,7 +62,6 @@ The project may include the following test types where supported by the API and 
 - authentication-related testing;
 - filtering and query parameter testing;
 - response status, header, body, and structure validation;
-- selected resource relationship testing.
 
 ## 6. Test Data Strategy
 

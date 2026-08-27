@@ -1,7 +1,8 @@
 import { test, expect } from '@playwright/test';
 import { getAuthHeaders } from './helpers/auth';
+import { cleanupUser } from './helpers/cleanup';
 
-test('API-USERS-009 - should create authenticated user', async ({ request }) => {
+test('API-USERS-009 - should create authenticated user', async ({ request }, testInfo) => {
   
   const userData = {
     name: 'Authenticated API User',
@@ -18,16 +19,19 @@ test('API-USERS-009 - should create authenticated user', async ({ request }) => 
   expect(createResponse.status()).toBe(201);
 
   const createdUser = await createResponse.json();
-
   expect(createdUser).toHaveProperty('id');
-  expect(createdUser.name).toBe(userData.name);
-  expect(createdUser.email).toBe(userData.email);
-  expect(createdUser.gender).toBe(userData.gender);
-  expect(createdUser.status).toBe(userData.status);
+  expect(typeof createdUser.id).toBe('number');
 
   const userId = createdUser.id;
 
+  let primaryFailure: unknown;
+
   try {
+    expect(createdUser.name).toBe(userData.name);
+    expect(createdUser.email).toBe(userData.email);
+    expect(createdUser.gender).toBe(userData.gender);
+    expect(createdUser.status).toBe(userData.status);
+
     const getResponse = await request.get(`users/${userId}`, {
       headers: getAuthHeaders(),
     });
@@ -41,16 +45,26 @@ test('API-USERS-009 - should create authenticated user', async ({ request }) => 
     expect(retrievedUser.email).toBe(userData.email);
     expect(retrievedUser.gender).toBe(userData.gender);
     expect(retrievedUser.status).toBe(userData.status);
+  } catch (error) {
+    primaryFailure = error;
+    throw error;
   } finally {
-    const deleteResponse = await request.delete(`users/${userId}`, {
-      headers: getAuthHeaders(),
-    });
+    const cleanupError = await cleanupUser(request, userId);
 
-    expect(deleteResponse.status()).toBe(204);
+    if (cleanupError) {
+      if (primaryFailure) {
+        await testInfo.attach('cleanup-failure', {
+          body: cleanupError.message,
+          contentType: 'text/plain',
+        });
+      } else {
+        throw cleanupError;
+      }
+    }
   }
 });
 
-test('API-USERS-010 - should partially update authenticated user', async ({ request }) => {
+test('API-USERS-010 - should partially update authenticated user', async ({ request }, testInfo) => {
  
   const userData = {
     name: 'PATCH API User',
@@ -67,7 +81,12 @@ test('API-USERS-010 - should partially update authenticated user', async ({ requ
   expect(createResponse.status()).toBe(201);
 
   const createdUser = await createResponse.json();
+  expect(createdUser).toHaveProperty('id');
+  expect(typeof createdUser.id).toBe('number');
+
   const userId = createdUser.id;
+
+  let primaryFailure: unknown;
 
   try {
     const updateData = {
@@ -101,16 +120,26 @@ test('API-USERS-010 - should partially update authenticated user', async ({ requ
     expect(retrievedUser.status).toBe(updateData.status);
     expect(retrievedUser.email).toBe(userData.email);
     expect(retrievedUser.gender).toBe(userData.gender);
+  } catch (error) {
+    primaryFailure = error;
+    throw error;
   } finally {
-    const deleteResponse = await request.delete(`users/${userId}`, {
-      headers: getAuthHeaders(),
-    });
+    const cleanupError = await cleanupUser(request, userId);
 
-    expect(deleteResponse.status()).toBe(204);
+    if (cleanupError) {
+      if (primaryFailure) {
+        await testInfo.attach('cleanup-failure', {
+          body: cleanupError.message,
+          contentType: 'text/plain',
+        });
+      } else {
+        throw cleanupError;
+      }
+    }
   }
 });
 
-test('API-USERS-011 - should fully update authenticated user with PUT', async ({ request }) => {
+test('API-USERS-011 - should fully update authenticated user with PUT', async ({ request }, testInfo) => {
 
   const userData = {
     name: 'PUT API User',
@@ -127,7 +156,12 @@ test('API-USERS-011 - should fully update authenticated user with PUT', async ({
   expect(createResponse.status()).toBe(201);
 
   const createdUser = await createResponse.json();
+  expect(createdUser).toHaveProperty('id');
+  expect(typeof createdUser.id).toBe('number');
+
   const userId = createdUser.id;
+
+  let primaryFailure: unknown;
 
   try {
     const updatedUserData = {
@@ -163,16 +197,26 @@ test('API-USERS-011 - should fully update authenticated user with PUT', async ({
     expect(retrievedUser.email).toBe(updatedUserData.email);
     expect(retrievedUser.gender).toBe(updatedUserData.gender);
     expect(retrievedUser.status).toBe(updatedUserData.status);
+  } catch (error) {
+    primaryFailure = error;
+    throw error;
   } finally {
-    const deleteResponse = await request.delete(`users/${userId}`, {
-      headers: getAuthHeaders(),
-    });
+    const cleanupError = await cleanupUser(request, userId);
 
-    expect(deleteResponse.status()).toBe(204);
+    if (cleanupError) {
+      if (primaryFailure) {
+        await testInfo.attach('cleanup-failure', {
+          body: cleanupError.message,
+          contentType: 'text/plain',
+        });
+      } else {
+        throw cleanupError;
+      }
+    }
   }
 });
 
-test('API-USERS-012 - should delete authenticated user', async ({ request }) => {
+test('API-USERS-012 - should delete authenticated user', async ({ request }, testInfo) => {
   
   const userData = {
     name: 'DELETE API User',
@@ -189,9 +233,13 @@ test('API-USERS-012 - should delete authenticated user', async ({ request }) => 
   expect(createResponse.status()).toBe(201);
 
   const createdUser = await createResponse.json();
+  expect(createdUser).toHaveProperty('id');
+  expect(typeof createdUser.id).toBe('number');
+
   const userId = createdUser.id;
 
   let deleted = false;
+  let primaryFailure: unknown;
 
   try {
     const deleteResponse = await request.delete(`users/${userId}`, {
@@ -218,11 +266,23 @@ test('API-USERS-012 - should delete authenticated user', async ({ request }) => 
 
     expect(body).toHaveProperty('message');
     expect(body.message).toBe('Resource not found');
+  } catch (error) {
+    primaryFailure = error;
+    throw error;
   } finally {
     if (!deleted) {
-      await request.delete(`users/${userId}`, {
-        headers: getAuthHeaders(),
-      });
+      const cleanupError = await cleanupUser(request, userId);
+
+      if (cleanupError) {
+        if (primaryFailure) {
+          await testInfo.attach('cleanup-failure', {
+            body: cleanupError.message,
+            contentType: 'text/plain',
+          });
+        } else {
+          throw cleanupError;
+        }
+      }
     }
   }
 });
