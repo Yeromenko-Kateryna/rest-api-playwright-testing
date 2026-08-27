@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { getAuthHeaders } from './helpers/auth';
 
 test('API-AUTH-001 - should reject user creation without authentication', async ({ request }) => {
   const userData = {
@@ -45,9 +46,7 @@ test('API-AUTH-002 - should reject user creation with invalid bearer token', asy
 });
 
 test('API-USERS-007 - should reject user creation without required email', async ({ request }) => {
-  const token = process.env.GOREST_TOKEN;
 
-  expect(token).toBeTruthy();
 
   const userData = {
     name: 'Missing Email API User',
@@ -56,9 +55,7 @@ test('API-USERS-007 - should reject user creation without required email', async
   };
 
   const response = await request.post('users', {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: getAuthHeaders(),
     data: userData,
   });
 
@@ -77,10 +74,7 @@ test('API-USERS-007 - should reject user creation without required email', async
 });
 
 test('API-USERS-008 - should reject user creation with invalid gender value', async ({ request }) => {
-  const token = process.env.GOREST_TOKEN;
-
-  expect(token).toBeTruthy();
-
+  
   const userData = {
     name: 'Invalid Gender API User',
     email: `invalid-gender-${Date.now()}@example.com`,
@@ -89,9 +83,7 @@ test('API-USERS-008 - should reject user creation with invalid gender value', as
   };
 
   const response = await request.post('users', {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: getAuthHeaders(),
     data: userData,
   });
 

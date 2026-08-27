@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { getAuthHeaders } from './helpers/auth';
 
 test('API-USERS-001 - should retrieve users collection', async ({ request }) => {
   const response = await request.get('users');
@@ -60,10 +61,7 @@ test('API-USERS-002 - should retrieve existing user by ID', async ({ request }) 
 });
 
 test('API-USERS-003 - should return 404 for nonexistent user', async ({ request }) => {
-  const token = process.env.GOREST_TOKEN;
-
-  expect(token).toBeTruthy();
-
+  
   const userData = {
     name: 'Nonexistent User Verification',
     email: `nonexistent-${Date.now()}@example.com`,
@@ -72,9 +70,7 @@ test('API-USERS-003 - should return 404 for nonexistent user', async ({ request 
   };
 
   const createResponse = await request.post('users', {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: getAuthHeaders(),
     data: userData,
   });
 
@@ -87,18 +83,14 @@ test('API-USERS-003 - should return 404 for nonexistent user', async ({ request 
 
   try {
     const deleteResponse = await request.delete(`users/${nonexistentUserId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: getAuthHeaders(),
     });
 
     expect(deleteResponse.status()).toBe(204);
     deleted = true;
 
     const response = await request.get(`users/${nonexistentUserId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: getAuthHeaders(),
     });
 
     expect(response.status()).toBe(404);
@@ -113,9 +105,7 @@ test('API-USERS-003 - should return 404 for nonexistent user', async ({ request 
   } finally {
     if (!deleted) {
       await request.delete(`users/${nonexistentUserId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: getAuthHeaders(),
       });
     }
   }

@@ -1,10 +1,8 @@
 import { test, expect } from '@playwright/test';
+import { getAuthHeaders } from './helpers/auth';
 
 test('API-CRUD-001 - should complete authenticated user lifecycle', async ({ request }) => {
-  const token = process.env.GOREST_TOKEN;
-
-  expect(token).toBeTruthy();
-
+ 
   const userData = {
     name: 'CRUD Lifecycle User',
     email: `crud-${Date.now()}@example.com`,
@@ -13,9 +11,7 @@ test('API-CRUD-001 - should complete authenticated user lifecycle', async ({ req
   };
 
   const createResponse = await request.post('users', {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: getAuthHeaders(),
     data: userData,
   });
 
@@ -28,9 +24,7 @@ test('API-CRUD-001 - should complete authenticated user lifecycle', async ({ req
 
   try {
     const getCreatedResponse = await request.get(`users/${userId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: getAuthHeaders(),
     });
 
     expect(getCreatedResponse.status()).toBe(200);
@@ -49,9 +43,7 @@ test('API-CRUD-001 - should complete authenticated user lifecycle', async ({ req
     };
 
     const patchResponse = await request.patch(`users/${userId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: getAuthHeaders(),
       data: updateData,
     });
 
@@ -65,9 +57,7 @@ test('API-CRUD-001 - should complete authenticated user lifecycle', async ({ req
     expect(updatedUser.gender).toBe(userData.gender);
 
     const getUpdatedResponse = await request.get(`users/${userId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: getAuthHeaders(),
     });
 
     expect(getUpdatedResponse.status()).toBe(200);
@@ -80,18 +70,14 @@ test('API-CRUD-001 - should complete authenticated user lifecycle', async ({ req
     expect(retrievedUpdatedUser.gender).toBe(userData.gender);
 
     const deleteResponse = await request.delete(`users/${userId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: getAuthHeaders(),
     });
 
     expect(deleteResponse.status()).toBe(204);
     deleted = true;
 
     const getDeletedResponse = await request.get(`users/${userId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: getAuthHeaders(),
     });
 
     expect(getDeletedResponse.status()).toBe(404);
@@ -103,9 +89,7 @@ test('API-CRUD-001 - should complete authenticated user lifecycle', async ({ req
   } finally {
     if (!deleted) {
       await request.delete(`users/${userId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: getAuthHeaders(),
       });
     }
   }

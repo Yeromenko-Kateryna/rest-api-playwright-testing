@@ -1,10 +1,8 @@
 import { test, expect } from '@playwright/test';
+import { getAuthHeaders } from './helpers/auth';
 
 test('API-USERS-009 - should create authenticated user', async ({ request }) => {
-  const token = process.env.GOREST_TOKEN;
-
-  expect(token).toBeTruthy();
-
+  
   const userData = {
     name: 'Authenticated API User',
     email: `authenticated-${Date.now()}@example.com`,
@@ -13,9 +11,7 @@ test('API-USERS-009 - should create authenticated user', async ({ request }) => 
   };
 
   const createResponse = await request.post('users', {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: getAuthHeaders(),
     data: userData,
   });
 
@@ -33,9 +29,7 @@ test('API-USERS-009 - should create authenticated user', async ({ request }) => 
 
   try {
     const getResponse = await request.get(`users/${userId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: getAuthHeaders(),
     });
 
     expect(getResponse.status()).toBe(200);
@@ -49,9 +43,7 @@ test('API-USERS-009 - should create authenticated user', async ({ request }) => 
     expect(retrievedUser.status).toBe(userData.status);
   } finally {
     const deleteResponse = await request.delete(`users/${userId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: getAuthHeaders(),
     });
 
     expect(deleteResponse.status()).toBe(204);
@@ -59,10 +51,7 @@ test('API-USERS-009 - should create authenticated user', async ({ request }) => 
 });
 
 test('API-USERS-010 - should partially update authenticated user', async ({ request }) => {
-  const token = process.env.GOREST_TOKEN;
-
-  expect(token).toBeTruthy();
-
+ 
   const userData = {
     name: 'PATCH API User',
     email: `patch-${Date.now()}@example.com`,
@@ -71,9 +60,7 @@ test('API-USERS-010 - should partially update authenticated user', async ({ requ
   };
 
   const createResponse = await request.post('users', {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: getAuthHeaders(),
     data: userData,
   });
 
@@ -89,9 +76,7 @@ test('API-USERS-010 - should partially update authenticated user', async ({ requ
     };
 
     const patchResponse = await request.patch(`users/${userId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: getAuthHeaders(),
       data: updateData,
     });
 
@@ -105,9 +90,7 @@ test('API-USERS-010 - should partially update authenticated user', async ({ requ
     expect(updatedUser.gender).toBe(userData.gender);
 
     const getResponse = await request.get(`users/${userId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: getAuthHeaders(),
     });
 
     expect(getResponse.status()).toBe(200);
@@ -120,9 +103,7 @@ test('API-USERS-010 - should partially update authenticated user', async ({ requ
     expect(retrievedUser.gender).toBe(userData.gender);
   } finally {
     const deleteResponse = await request.delete(`users/${userId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: getAuthHeaders(),
     });
 
     expect(deleteResponse.status()).toBe(204);
@@ -130,9 +111,6 @@ test('API-USERS-010 - should partially update authenticated user', async ({ requ
 });
 
 test('API-USERS-011 - should fully update authenticated user with PUT', async ({ request }) => {
-  const token = process.env.GOREST_TOKEN;
-
-  expect(token).toBeTruthy();
 
   const userData = {
     name: 'PUT API User',
@@ -142,9 +120,7 @@ test('API-USERS-011 - should fully update authenticated user with PUT', async ({
   };
 
   const createResponse = await request.post('users', {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: getAuthHeaders(),
     data: userData,
   });
 
@@ -162,9 +138,7 @@ test('API-USERS-011 - should fully update authenticated user with PUT', async ({
     };
 
     const putResponse = await request.put(`users/${userId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: getAuthHeaders(),
       data: updatedUserData,
     });
 
@@ -178,9 +152,7 @@ test('API-USERS-011 - should fully update authenticated user with PUT', async ({
     expect(updatedUser.status).toBe(updatedUserData.status);
 
     const getResponse = await request.get(`users/${userId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: getAuthHeaders(),
     });
 
     expect(getResponse.status()).toBe(200);
@@ -193,9 +165,7 @@ test('API-USERS-011 - should fully update authenticated user with PUT', async ({
     expect(retrievedUser.status).toBe(updatedUserData.status);
   } finally {
     const deleteResponse = await request.delete(`users/${userId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: getAuthHeaders(),
     });
 
     expect(deleteResponse.status()).toBe(204);
@@ -203,10 +173,7 @@ test('API-USERS-011 - should fully update authenticated user with PUT', async ({
 });
 
 test('API-USERS-012 - should delete authenticated user', async ({ request }) => {
-  const token = process.env.GOREST_TOKEN;
-
-  expect(token).toBeTruthy();
-
+  
   const userData = {
     name: 'DELETE API User',
     email: `delete-${Date.now()}@example.com`,
@@ -215,9 +182,7 @@ test('API-USERS-012 - should delete authenticated user', async ({ request }) => 
   };
 
   const createResponse = await request.post('users', {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: getAuthHeaders(),
     data: userData,
   });
 
@@ -230,9 +195,7 @@ test('API-USERS-012 - should delete authenticated user', async ({ request }) => 
 
   try {
     const deleteResponse = await request.delete(`users/${userId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: getAuthHeaders(),
     });
 
     expect(deleteResponse.status()).toBe(204);
@@ -243,9 +206,7 @@ test('API-USERS-012 - should delete authenticated user', async ({ request }) => 
     deleted = true;
 
     const getResponse = await request.get(`users/${userId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: getAuthHeaders(),
     });
 
     expect(getResponse.status()).toBe(404);
@@ -260,9 +221,7 @@ test('API-USERS-012 - should delete authenticated user', async ({ request }) => 
   } finally {
     if (!deleted) {
       await request.delete(`users/${userId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: getAuthHeaders(),
       });
     }
   }
