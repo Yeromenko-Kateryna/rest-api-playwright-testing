@@ -4,9 +4,9 @@
 
 Define which manually validated GoREST API scenarios should be automated with Playwright and which should remain manual or exploratory.
 
-## Automation Candidates
+## Automated Scenarios
 
-### High Priority
+### High Priority Coverage
 
 - `API-USERS-001` - Retrieve users collection
 - `API-USERS-002` - Retrieve existing user by ID
@@ -21,7 +21,7 @@ Define which manually validated GoREST API scenarios should be automated with Pl
 - `API-USERS-012` - Delete authenticated user
 - `API-CRUD-001` - Complete authenticated user lifecycle
 
-## Secondary Automation Candidates
+## Secondary Coverage
 
 - `API-USERS-004` - Retrieve users with pagination parameters
 - `API-USERS-005` - Filter users by active status

@@ -18,7 +18,7 @@ GoREST v2 API is accessible.
 
 **Priority:** High
 
-**Automation Status:** Planned
+**Automation Status:** Automated
 
 ## API-USERS-002 - Retrieve existing user by ID
 
@@ -38,7 +38,7 @@ An existing user ID is obtained from the current users collection.
 
 **Priority:** High
 
-**Automation Status:** Planned
+**Automation Status:** Automated
 
 ## API-USERS-003 - Retrieve nonexistent user by ID
 
@@ -58,7 +58,7 @@ A user ID confirmed to be absent from the API is available for negative testing.
 
 **Priority:** High
 
-**Automation Status:** Planned
+**Automation Status:** Automated
 
 ## API-USERS-004 - Retrieve users with pagination parameters
 
@@ -80,7 +80,7 @@ GoREST v2 API is accessible.
 
 **Priority:** Medium
 
-**Automation Status:** Planned
+**Automation Status:** Automated
 
 
 ## API-USERS-005 - Filter users by active status
@@ -101,7 +101,7 @@ GoREST v2 API is accessible.
 
 **Priority:** Medium
 
-**Automation Status:** Planned
+**Automation Status:** Automated
 
 
 ## API-USERS-006 - Filter users by female gender
@@ -122,7 +122,7 @@ GoREST v2 API is accessible.
 
 **Priority:** Medium
 
-**Automation Status:** Planned
+**Automation Status:** Automated
 
 ## API-AUTH-001 - Create user without authentication
 
@@ -145,7 +145,7 @@ A valid user payload is sent without an `Authorization` header.
 
 **Priority:** High
 
-**Automation Status:** Planned
+**Automation Status:** Automated
 
 
 ## API-AUTH-002 - Create user with invalid bearer token
@@ -166,7 +166,7 @@ A valid user payload is sent with an invalid bearer token.
 
 **Priority:** High
 
-**Automation Status:** Planned
+**Automation Status:** Automated
 
 
 ## API-USERS-007 - Create user without required email
@@ -189,7 +189,7 @@ The request contains valid `name`, `gender`, and `status` values but omits `emai
 
 **Priority:** High
 
-**Automation Status:** Planned
+**Automation Status:** Automated
 
 
 ## API-USERS-008 - Create user with invalid gender value
@@ -212,7 +212,7 @@ The request contains a unique email and uses `invalid-value` for `gender`.
 
 **Priority:** High
 
-**Automation Status:** Planned
+**Automation Status:** Automated
 
 ## API-USERS-009 - Create authenticated user
 
@@ -234,7 +234,7 @@ The request contains valid `name`, unique `email`, `gender`, and `status` values
 
 **Priority:** High
 
-**Automation Status:** Planned
+**Automation Status:** Automated
 
 
 ## API-USERS-010 - Partially update authenticated user
@@ -256,7 +256,7 @@ The request updates only selected fields such as `name` and `status`.
 
 **Priority:** High
 
-**Automation Status:** Planned
+**Automation Status:** Automated
 
 
 ## API-USERS-011 - Fully update authenticated user with PUT
@@ -277,7 +277,7 @@ The request contains a complete user payload with updated `name`, `email`, `gend
 
 **Priority:** High
 
-**Automation Status:** Planned
+**Automation Status:** Automated
 
 
 ## API-USERS-012 - Delete authenticated user
@@ -297,7 +297,7 @@ A test user has been created with a valid bearer token.
 
 **Priority:** High
 
-**Automation Status:** Planned
+**Automation Status:** Automated
 
 
 ## API-CRUD-001 - Complete authenticated user lifecycle
@@ -326,4 +326,4 @@ A valid GoREST bearer token is available.
 
 **Priority:** High
 
-**Automation Status:** Planned
+**Automation Status:** Automated
